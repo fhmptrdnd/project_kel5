@@ -70,6 +70,7 @@ def akses_admin():
 
 def akses_pelanggan():
     print('\nLogin berhasil\n')
+    print('Hai, mau ngapain hari ini?')
     
 def awal():
     global opsi
