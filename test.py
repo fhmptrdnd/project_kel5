@@ -17,7 +17,7 @@ def logIn(username, password):
             continue  # baris yg ga sesuai format diskip aja
     file.close()
     if sukses:
-        if username == 'Admin' and password == 'AdminProPlayer':
+        if username == 'Admin' and password == 'Admin123':
             os.system('cls')
             akses_admin()
         else:
@@ -107,14 +107,61 @@ def akses(opsi):
     elif opsi == 4:
         print('\nTerima kasih sudah berkunjung!\n')
 
+def cek_username_terdaftar(username):
+    # Membaca file datauser.csv
+    with open("datauser.csv", "r") as file:
+        for i in file:
+            try:
+                a = i.split(',')[0]  # Ambil elemen pertama saja
+                if a == username:
+                    return True  # Username ditemukan
+            except IndexError:
+                continue  # Skip baris kosong atau tidak valid
+    return False  # Username tidak ditemukan
+
+# Fungsi untuk update saldo oleh admin
+def tambah_saldo_admin(username, jumlah_tambah):
+    file = open("datauser.csv", "r")
+    lines = file.readlines()
+    file.close()
+    for i in range(len(lines)):
+        try:
+            a, b, c, d = lines[i].split(',', 3)  # Ambil kolom saldo
+            d = d.strip()
+            if a == username:
+                new_saldo = float(d) + jumlah_tambah
+                lines[i] = f"{a},{b},{c},{new_saldo}\n"  # Update saldo pengguna
+                break
+        except ValueError:
+            continue
+    file = open("datauser.csv", "w")
+    file.writelines(lines)
+    file.close()
+    print(f"Saldo untuk {username} berhasil ditambahkan sebesar {jumlah_tambah}.")
+
+# Fungsi untuk cek saldo
+def cek_saldo(username):
+    file = open("datauser.csv", "r")
+    lines = file.readlines()
+    file.close()
+    for i in lines:
+        try:
+            a, b, c, d = i.split(',', 3)  # Ambil kolom ke-4 sebagai saldo
+            d = d.strip()
+            if a == username:
+                return d  # Kembalikan saldo pengguna
+        except ValueError:
+            continue
+    return None  # Jika user tidak ditemukan
+
 def akses_admin():
     while True:
         print('\nHalo Admin!\nMau ngapain hari ini?')
         print('='*50)
-        print('1. Data Petani\n2. Data Pesanan\n3. Data Pengguna\n4. Keluar')
+        print('1. Data Petani\n2. Data Pesanan\n3. Data Pengguna\n4. Tambah saldo user\n.5 Keluar')
         print('='*50)
         try:
-            opsi_admin = int(input('Silahkan pilih menu (1/2/3/4): '))
+            opsi_admin = int(input('Silahkan pilih menu (1/2/3/4/5): '))
             if opsi_admin == 1:
                 data_petani = pd.read_csv('datapetani.csv')
                 print(tabulate(data_petani, headers='keys', tablefmt='grid', showindex=False))
@@ -125,6 +172,14 @@ def akses_admin():
                 data_pengguna = data_pengguna.drop(data_pengguna.columns[1], axis=1) # ini fungsinya ngehapus kolom kedua berdasarkan index
                 print(tabulate(data_pengguna, headers='keys', tablefmt='grid', showindex=False))
             elif opsi_admin == 4:
+                username = input("\nMasukkan Username Pengguna yang akan diisi saldo: ").strip()
+                # Cek apakah username terdaftar
+                if cek_username_terdaftar(username):
+                    jumlah_tambah = float(input("Masukkan jumlah saldo yang ingin ditambahkan: "))
+                    tambah_saldo_admin(username, jumlah_tambah)
+                else:
+                    print("\nUsername tidak terdaftar. Saldo tidak dapat ditambahkan.")
+            elif opsi_admin == 5:
                 os.system('cls')
                 awal()
                 break
@@ -132,8 +187,6 @@ def akses_admin():
                 input('\nHarap pilih menu yang ada.')
         except ValueError:
             input('\nHarap pilih menu yang ada.')
-
-        #aku bingung gimana caranya user milih jasa petaninya
         
 def akses_pelanggan():
     print('\nHai, mau ngapain hari ini?')
@@ -147,15 +200,24 @@ def akses_pelanggan():
             input("\n" + tabulate(data_petani, headers='keys', tablefmt='grid', showindex=False))
             os.system('cls')
             akses_pelanggan()
+        elif opsi_pelanggan == 2:
+            saldo = cek_saldo(username)  # Menggunakan username yang sudah ada
+            if saldo is not None:
+                print(f"\nSaldo Anda saat ini: {saldo}")
+            else:
+                print("\nUsername tidak ditemukan.")
         elif opsi_pelanggan == 3:
             os.system('cls')
             awal()
         else :
             input('\nHarap pilih menu yang ada.')
-            return
+            os.system('cls')
+            akses_pelanggan()
     except ValueError:
-         input('\nHarap pilih menu yang ada.')
-    
+        input('\nHarap pilih menu yang ada.')
+        os.system('cls')
+        akses_pelanggan() 
+
 def awal():
     global opsi
     print('\nSelamat datang di Smart Farm!')
