@@ -112,7 +112,8 @@ def akses_admin():
         try:
             opsi_admin = int(input('Silahkan pilih menu (1/2/3/4): '))
             if opsi_admin == 1:
-                print('Fitur Data Petani belum tersedia.') #nama petani, alamat petani, skill (5)
+                data_petani = pd.read_csv('percobaan_kel5/datapetaniTasya.csv')
+                print(tabulate(data_petani, headers='keys', tablefmt='grid', showindex=False))
             elif opsi_admin == 2:
                 print('Fitur Data Pesanan belum tersedia.') 
             elif opsi_admin == 3:
@@ -128,9 +129,25 @@ def akses_admin():
         except ValueError:
             input('\nHarap pilih menu yang ada.')
 
+def akses_pelanggan(opsi_pelanggan) :
+    if opsi_pelanggan == 1 :
+        data_petani = pd.read_csv('percobaan_kel5/datapetaniTasya.csv')
+        print(tabulate(data_petani, headers='keys', tablefmt='grid', showindex=False))
+        #aku bingung gimana caranya user milih jasa petaninya
+        
 def akses_pelanggan():
     print('\nLogin berhasil\n')
     print('Hai, mau ngapain hari ini?')
+    print('='*50)
+    print('1. Pilih Jasa Petani.\n2. Cek Saldo.\n3. Keluar')
+    print('='*50)
+    opsi_pelanggan= input('Silahkan pilih menu (1/2/3): ')
+    if opsi_pelanggan.isdigit() and int(opsi_pelanggan) in [1,2] :
+        opsi_pelanggan=int(opsi_pelanggan)
+        akses_pelanggan(opsi_pelanggan)
+    else :
+        input('\nHarap pilih menu yang ada.')
+        return
     
 def awal():
     global opsi
