@@ -112,11 +112,11 @@ def cek_username_terdaftar(username):
     with open("datauser.csv", "r") as file:
         for i in file:
             try:
-                a = i.split(',')[0]  # Ambil elemen pertama saja
+                a = i.split(',')[0]  # Ambil elemen pertama aja
                 if a == username:
                     return True  # Username ditemukan
             except IndexError:
-                continue  # Skip baris kosong atau tidak valid
+                continue  # Skip baris kosong atau gk valid
     return False  # Username tidak ditemukan
 
 # Fungsi untuk update saldo oleh admin
@@ -141,42 +141,54 @@ def tambah_saldo_admin(username, jumlah_tambah):
 
 # Fungsi untuk cek saldo
 def cek_saldo(username):
-    file = open("datauser.csv", "r")
-    lines = file.readlines()
-    file.close()
-    for i in lines:
-        try:
-            a, b, c, d = i.split(',', 3)  # Ambil kolom ke-4 sebagai saldo
-            d = d.strip()
-            if a == username:
-                return d  # Kembalikan saldo pengguna
-        except ValueError:
-            continue
-    return None  # Jika user tidak ditemukan
+    try:
+        data_saldo = pd.read_csv('datauser.csv')
+        user_saldo = data_saldo.loc[data_saldo['Username'] == username, 'saldo']
+        if not user_saldo.empty:
+            return user_saldo.values[0]
+    except FileNotFoundError:
+        print("File saldo tidak ditemukan.")
+    return None
 
 def akses_admin():
     while True:
         print('\nHalo Admin!\nMau ngapain hari ini?')
         print('='*50)
-        print('1. Data Petani\n2. Data Pesanan\n3. Data Pengguna\n4. Tambah saldo user\n.5 Keluar')
+        print('1. Data Petani\n2. Data Pesanan\n3. Data Pengguna\n4. Tambah saldo user\n5. Keluar')
         print('='*50)
         try:
             opsi_admin = int(input('Silahkan pilih menu (1/2/3/4/5): '))
             if opsi_admin == 1:
                 data_petani = pd.read_csv('datapetani.csv')
-                print(tabulate(data_petani, headers='keys', tablefmt='grid', showindex=False))
+                input(tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
+                try: 
+                    petani_index = int(input('Silahkan pilih nomor petani yang ingin diubah statusnya: ')) 
+                    if petani_index < 1 or petani_index > len(data_petani): 
+                        input('\nHarap pilih nomor petani yang ada.') 
+                    else: 
+                        status_sekarang = data_petani.at[petani_index - 1, 'Status'] 
+                        status_baru = 'Tidak Tersedia' if status_sekarang == 'Tersedia' else 'Tersedia'
+                        data_petani.at[petani_index - 1, 'Status'] = status_baru
+                        data_petani.to_csv('datapetani.csv', index=False)
+                        print('\nStatus berhasil diubah.')
+                        print(tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
+                        data_petani.to_csv('datapetani.csv', index=False)
+                except ValueError: input('\nHarap masukkan nomor yang valid.')
             elif opsi_admin == 2:
                 print('Fitur Data Pesanan belum tersedia.') 
             elif opsi_admin == 3:
                 data_pengguna = pd.read_csv('datauser.csv')
                 data_pengguna = data_pengguna.drop(data_pengguna.columns[1], axis=1) # ini fungsinya ngehapus kolom kedua berdasarkan index
-                print(tabulate(data_pengguna, headers='keys', tablefmt='grid', showindex=False))
+                input(tabulate(data_pengguna, headers='keys', tablefmt='grid', showindex=range(1, len(data_pengguna)+1)))
             elif opsi_admin == 4:
                 username = input("\nMasukkan Username Pengguna yang akan diisi saldo: ").strip()
                 # Cek apakah username terdaftar
                 if cek_username_terdaftar(username):
-                    jumlah_tambah = float(input("Masukkan jumlah saldo yang ingin ditambahkan: "))
-                    tambah_saldo_admin(username, jumlah_tambah)
+                    try:
+                        jumlah_tambah = float(input("Masukkan jumlah saldo yang ingin ditambahkan: "))
+                        tambah_saldo_admin(username, jumlah_tambah)
+                    except ValueError:
+                        input('Harap masukkan nominal yang benar.')
                 else:
                     print("\nUsername tidak terdaftar. Saldo tidak dapat ditambahkan.")
             elif opsi_admin == 5:
@@ -189,7 +201,7 @@ def akses_admin():
             input('\nHarap pilih menu yang ada.')
         
 def akses_pelanggan():
-    print('\nHai, mau ngapain hari ini?')
+    print(f'\nHai {username}, mau ngapain hari ini?')
     print('='*50)
     print('1. Pilih Jasa Petani.\n2. Cek Saldo.\n3. Keluar')
     print('='*50)
@@ -197,18 +209,27 @@ def akses_pelanggan():
         opsi_pelanggan= int(input('Silahkan pilih menu (1/2/3): '))
         if opsi_pelanggan == 1 :
             data_petani = pd.read_csv('datapetani.csv')
-            input("\n" + tabulate(data_petani, headers='keys', tablefmt='grid', showindex=False))
+            print("\n" + tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
+            pesan = int(input('Silahkan pilih nomor petani yang anda ingin pesan: '))
+            if pesan < 1 or pesan > len(data_petani): 
+                input('\nHarap pilih nomor petani yang ada.')
+                os.system('cls')
+                akses_pelanggan()
+                return
             os.system('cls')
             akses_pelanggan()
-        elif opsi_pelanggan == 2:
-            saldo = cek_saldo(username)  # Menggunakan username yang sudah ada
-            if saldo is not None:
-                print(f"\nSaldo Anda saat ini: {saldo}")
-            else:
-                print("\nUsername tidak ditemukan.")
+        elif opsi_pelanggan == 2: 
+            # print(f"Username saat ini: {username}")
+            saldo = cek_saldo(username) 
+            # print(f"Saldo yang ditemukan: {saldo}")
+            if saldo is not None: 
+                input(f"\nSaldo Anda saat ini: Rp.{saldo:,.2f}") 
+            else: 
+                input("\nUsername tidak ditemukan.")
         elif opsi_pelanggan == 3:
             os.system('cls')
             awal()
+            return
         else :
             input('\nHarap pilih menu yang ada.')
             os.system('cls')

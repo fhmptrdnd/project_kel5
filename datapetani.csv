@@ -1,6 +1,6 @@
-Nama,Skill,Alamat
-Zunaidi,Pemupukan,Jember
-Ahmad,Penyiraman,Jember
-Rizal,Penyiangan Gulma,Jember
-Putra,Pengendalian Hama & Penyakit,Jember
-Joko,Pemangkasan & Pemeliharaan Tanaman, Jember
+Nama,Skill,Alamat,Status
+Zunaidi,Pemupukan,Jember, Tersedia
+Ahmad,Penyiraman,Jember,Tidak Tersedia
+Rizal,Penyiangan Gulma,Jember, Tersedia
+Putra,Pengendalian Hama & Penyakit,Jember, Tersedia
+Joko,Pemangkasan & Pemeliharaan Tanaman, Jember, Tersedia
