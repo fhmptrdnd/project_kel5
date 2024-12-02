@@ -169,9 +169,8 @@ def akses_admin():
                         status_sekarang = data_petani.at[petani_index - 1, 'Status'] 
                         status_baru = 'Tidak Tersedia' if status_sekarang == 'Tersedia' else 'Tersedia'
                         data_petani.at[petani_index - 1, 'Status'] = status_baru
-                        data_petani.to_csv('datapetani.csv', index=False)
                         print('\nStatus berhasil diubah.')
-                        print(tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
+                        input(tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
                         data_petani.to_csv('datapetani.csv', index=False)
                 except ValueError: input('\nHarap masukkan nomor yang valid.')
             elif opsi_admin == 2:
