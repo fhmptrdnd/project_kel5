@@ -1,7 +1,9 @@
 import pandas as pd
 import getpass
+from datetime import datetime, timedelta
 from tabulate import tabulate
 import os
+import csv
 
 def logIn(username, password):
     sukses = False
@@ -36,17 +38,18 @@ def signUp(username, password, email):
         try:
             a, _, _ = i.split(',', 2)
             if a == username:
-                input('\nUsername sudah ada. Silahkan pilih username lain.')
+                input('\nUsername tidak tersedia. Silahkan gunakan username lain.')
                 file.close()
+                os.system('cls')
                 awal()
                 return
         except ValueError:
             continue
     file.close()
-
+    nsaldo = "0"
     # bagian nambahin data pengguna kalau belum ada
     file = open("datauser.csv", "a")
-    file.write("\n" + username + "," + password + "," + email)
+    file.write(username + "," + password + "," + email + "," + nsaldo)
     file.close()
     input('Sign Up berhasil, silahkan masuk.')
     awal()
@@ -89,6 +92,39 @@ def lupa_password(username, email):
         os.system('cls')
         awal()
 
+def ganti_username(username, password, email):
+    sukses = False
+    data = []
+
+    # Membaca file CSV
+    with open("datauser.csv", "r", newline='') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if len(row) >= 3:  
+                user, pwd, mail = row[0].strip(), row[1].strip(), row[2].strip()
+                if user == username and pwd == password and mail == email:
+                    sukses = True
+                    print("\nUsername, password, dan email ditemukan.")
+                data.append(row)
+    
+    if sukses:
+        new_username = input('Masukkan username baru: ').strip()
+        for row in data:
+            user, pwd, mail = row[0].strip(), row[1].strip(), row[2].strip()
+            if user == username and pwd == password and mail == email:
+                row[0] = new_username  
+        with open("datauser.csv", "w", newline='') as file:
+            writer = csv.writer(file)
+            writer.writerows(data)
+
+        input('\nUsername berhasil diganti.\nSilahkan login dengan username baru.')
+        os.system('cls')
+        awal()
+    else:
+        input('\nUsername, password, atau email tidak terdaftar.\nSilahkan coba lagi.')
+        os.system('cls')
+        awal()
+
 def akses(opsi):
     global username, email
     if opsi == 1:
@@ -105,6 +141,11 @@ def akses(opsi):
         email = input('Masukkan alamat email: ').strip()
         lupa_password(username, email)
     elif opsi == 4:
+        username = input('\nMasukkan Username: ').strip()
+        password = input('Masukkan Password: ')
+        email = input('Masukkan alamat email: ').strip()
+        ganti_username(username, password, email)
+    elif opsi == 5:
         print('\nTerima kasih sudah berkunjung!\n')
 
 def cek_username_terdaftar(username):
@@ -119,42 +160,203 @@ def cek_username_terdaftar(username):
                 continue  # Skip baris kosong atau gk valid
     return False  # Username tidak ditemukan
 
-# Fungsi untuk update saldo oleh admin
 def tambah_saldo_admin(username, jumlah_tambah):
-    file = open("datauser.csv", "r")
-    lines = file.readlines()
-    file.close()
-    for i in range(len(lines)):
-        try:
-            a, b, c, d = lines[i].split(',', 3)  # Ambil kolom saldo
-            d = d.strip()
-            if a == username:
-                new_saldo = float(d) + jumlah_tambah
-                lines[i] = f"{a},{b},{c},{new_saldo}\n"  # Update saldo pengguna
-                break
-        except ValueError:
-            continue
-    file = open("datauser.csv", "w")
-    file.writelines(lines)
-    file.close()
-    print(f"Saldo untuk {username} berhasil ditambahkan sebesar {jumlah_tambah}.")
+    data = []
 
-# Fungsi untuk cek saldo
+    with open("datauser.csv", "r", newline='') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if len(row) == 4:  # pastiin ada 4 kolom (Username, Password, Email, Saldo)
+                user, pwd, mail, saldo = row[0].strip(), row[1].strip(), row[2].strip(), row[3].strip()
+                if user == username:
+                    try:
+                        new_saldo = float(saldo) + jumlah_tambah if saldo else jumlah_tambah
+                    except ValueError:
+                        new_saldo = jumlah_tambah  # Jika saldo saat ini kosong atau tidak valid, set saldo baru
+                    row[3] = str(new_saldo)
+                    print(f"Saldo untuk {username} berhasil ditambahkan sebesar {jumlah_tambah}.")
+                data.append(row)
+            else:
+                data.append(row)
+
+    # Menulis ulang file CSV dengan data yang sudah di-update
+    with open("datauser.csv", "w", newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(data)
+
+import os
+import pandas as pd
+from tabulate import tabulate
+from datetime import datetime, timedelta
+
 def cek_saldo(username):
     try:
         data_saldo = pd.read_csv('datauser.csv')
-        user_saldo = data_saldo.loc[data_saldo['Username'] == username, 'saldo']
+        user_saldo = data_saldo.loc[data_saldo['Username'] == username, 'Saldo']
         if not user_saldo.empty:
             return user_saldo.values[0]
     except FileNotFoundError:
         print("File saldo tidak ditemukan.")
     return None
 
+def update_saldo(username, new_saldo):
+    data_pengguna = pd.read_csv('datauser.csv')
+    for i, row in data_pengguna.iterrows():
+        if row['Username'] == username:
+            data_pengguna.at[i, 'Saldo'] = new_saldo
+            data_pengguna.to_csv('datauser.csv', index=False)
+            return True
+    return False
+
+import os
+import pandas as pd
+
+def simpan_riwayat_pembelian(username, nama_petani, skill_petani, lama_sewa, biaya_sewa, tanggal_mulai, tanggal_selesai):
+    try:
+        riwayat_data = {
+            'Username': username,
+            'Nama Petani': nama_petani,
+            'Keahlian Jasa': skill_petani,
+            'Lama Sewa': lama_sewa,
+            'Biaya Sewa': biaya_sewa,
+            'Tanggal Mulai': tanggal_mulai.strftime('%d-%m-%Y'),
+            'Tanggal Selesai': tanggal_selesai.strftime('%d-%m-%Y')
+        }
+
+        # cek misal file riwayat pembelian udah ada
+        if os.path.isfile('riwayat_pembelian.csv'):
+            existing_data = pd.read_csv('riwayat_pembelian.csv')
+            updated_data = existing_data.append(riwayat_data, ignore_index=True)
+            updated_data.to_csv('riwayat_pembelian.csv', index=False)
+        else:
+            riwayat_df = pd.DataFrame([riwayat_data])
+            riwayat_df.to_csv('riwayat_pembelian.csv', index=False)
+    except FileNotFoundError:
+        riwayat_df = pd.DataFrame([riwayat_data])
+        riwayat_df.to_csv('riwayat_pembelian.csv', index=False)
+
+def cetak_nota(username, nama_petani, skill_petani, lama_sewa, biaya_sewa, tanggal_mulai, tanggal_selesai):
+    nota = f"""
+    ==============================
+             Nota Pembelian
+    ==============================
+    Username: {username}
+    Nama Petani: {nama_petani}
+    Keahlian Jasa: {skill_petani}
+    Lama Sewa: {lama_sewa} hari
+    Biaya Sewa: Rp.{biaya_sewa:,.2f}
+    Tanggal Mulai: {tanggal_mulai.strftime('%d-%m-%Y')}
+    Tanggal Selesai: {tanggal_selesai.strftime('%d-%m-%Y')}
+    ==============================
+    Terima kasih atas pembelian Anda!
+    """
+    print(nota)
+
+def checkout_sewa_petani(username):
+    data_petani = pd.read_csv('datapetani.csv')
+    print("\n" + tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
+    
+    try:
+        pilihan = int(input('Silahkan pilih nomor petani yang ingin Anda sewa: '))
+        if pilihan < 1 or pilihan > len(data_petani):
+            input('\nHarap pilih nomor petani yang ada.')
+            return
+
+        saldo_anda = cek_saldo(username)
+        print("="*80 + f"\nSisa saldo Anda: {saldo_anda:,.2f}" + "\n" + "="*80)
+        lama_sewa = int(input('Masukkan lama sewa (minimal 7 hari kerja): '))
+        if lama_sewa < 7:
+            input('\nLama sewa minimal adalah 7 hari kerja.')
+            return
+
+        biaya_sewa = lama_sewa * 35000
+
+        if saldo_anda is not None and saldo_anda >= biaya_sewa:
+            new_saldo = saldo_anda - biaya_sewa
+            update_saldo(username, new_saldo)
+
+            nama_petani = data_petani.at[pilihan - 1, 'Nama']
+            skill_petani = data_petani.at[pilihan - 1, 'Skill']
+
+            tanggal_mulai = datetime.now().date()
+            tanggal_selesai = tanggal_mulai + timedelta(days=lama_sewa)
+
+            cetak_nota(username, nama_petani, skill_petani, lama_sewa, biaya_sewa, tanggal_mulai, tanggal_selesai)
+            simpan_riwayat_pembelian(username, nama_petani, skill_petani, lama_sewa, biaya_sewa, tanggal_mulai, tanggal_selesai)
+
+            print(f"\nCheckout berhasil. Anda telah menyewa petani selama {lama_sewa} hari kerja dengan biaya Rp.{biaya_sewa:,.2f}")
+            input(f"Sisa saldo Anda: Rp.{new_saldo:,.2f}")
+            akses_pelanggan()
+        else:
+            input('\nSaldo tidak mencukupi untuk melakukan sewa.')
+            akses_pelanggan()
+    except ValueError:
+        input('\nHarap masukkan nomor yang valid.')
+        akses_pelanggan()
+
+def lihat_riwayat_pembelian_pelanggan_admin():
+    try:
+        data_riwayat = pd.read_csv('riwayat_pembelian.csv')
+        if not data_riwayat.empty:
+            input("\n" + tabulate(data_riwayat, headers='keys', tablefmt='grid', showindex=range(1, len(data_riwayat)+1)))
+        else:
+            input("\nTidak ada riwayat pembelian yang ditemukan.")
+    except FileNotFoundError:
+        input("\nTidak ada riwayat pembelian yang ditemukan.")
+
+def lihat_riwayat_pembelian(username):
+    try:
+        data_riwayat = pd.read_csv('riwayat_pembelian.csv')
+        riwayat_user = data_riwayat[data_riwayat['Username'] == username]
+        if not riwayat_user.empty:
+            input("\n" + tabulate(riwayat_user, headers='keys', tablefmt='grid', showindex=range(1, len(riwayat_user)+1)))
+        else:
+            input("\nTidak ada riwayat pembelian untuk user ini.")
+    except FileNotFoundError:
+        input("\nTidak ada riwayat pembelian yang ditemukan.")
+
+def akses_pelanggan():
+    print(f'\nHai {username}, mau ngapain hari ini?')
+    print('='*50)
+    print('1. Pilih Jasa Petani.\n2. Cek Saldo.\n3. Lihat Riwayat Pembelian\n4. Keluar')
+    print('='*50)
+    try:
+        opsi_pelanggan = int(input('Silahkan pilih menu (1/2/3/4): '))
+        if opsi_pelanggan == 1:
+            checkout_sewa_petani(username)
+            input('Tekan Enter untuk kembali ke menu.')
+            os.system('cls')
+            akses_pelanggan()
+        elif opsi_pelanggan == 2:
+            saldo = cek_saldo(username)
+            if saldo is not None:
+                print(f"\nSaldo Anda saat ini: Rp.{saldo:,.2f}")
+                input('Ingin melakukan top-up saldo? Silahkan menghubungi nomor di bawah:\n+6281359749043')
+            else:
+                input("\nUsername tidak ditemukan.")
+            os.system('cls')
+            akses_pelanggan()
+        elif opsi_pelanggan == 3:
+            lihat_riwayat_pembelian(username)
+            os.system('cls')
+            akses_pelanggan()
+        elif opsi_pelanggan == 4:
+            os.system('cls')
+            awal()
+        else:
+            input('\nHarap pilih menu yang ada.')
+            os.system('cls')
+            akses_pelanggan()
+    except ValueError:
+        input('\nHarap pilih menu yang ada.')
+        os.system('cls')
+        akses_pelanggan()
+
 def akses_admin():
     while True:
         print('\nHalo Admin!\nMau ngapain hari ini?')
         print('='*50)
-        print('1. Data Petani\n2. Data Pesanan\n3. Data Pengguna\n4. Tambah saldo user\n5. Keluar')
+        print('1. Data Petani\n2. Data Pesanan\n3. Data Pengguna\n4. Tambah saldo user\n5. Tambah Data Petani\n6. Keluar')
         print('='*50)
         try:
             opsi_admin = int(input('Silahkan pilih menu (1/2/3/4/5): '))
@@ -163,8 +365,10 @@ def akses_admin():
                 input(tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
                 try: 
                     petani_index = int(input('Silahkan pilih nomor petani yang ingin diubah statusnya: ')) 
-                    if petani_index < 1 or petani_index > len(data_petani): 
-                        input('\nHarap pilih nomor petani yang ada.') 
+                    if petani_index == 0:
+                        input('Tidak ada perubahan status yang dilakukan.')
+                    elif petani_index < 1 or petani_index > len(data_petani): 
+                        input('\nHarap pilih nomor petani yang ada.')
                     else: 
                         status_sekarang = data_petani.at[petani_index - 1, 'Status'] 
                         status_baru = 'Tidak Tersedia' if status_sekarang == 'Tersedia' else 'Tersedia'
@@ -174,14 +378,14 @@ def akses_admin():
                         data_petani.to_csv('datapetani.csv', index=False)
                 except ValueError: input('\nHarap masukkan nomor yang valid.')
             elif opsi_admin == 2:
-                print('Fitur Data Pesanan belum tersedia.') 
+                lihat_riwayat_pembelian_pelanggan_admin()
+                os.system('cls')
             elif opsi_admin == 3:
                 data_pengguna = pd.read_csv('datauser.csv')
                 data_pengguna = data_pengguna.drop(data_pengguna.columns[1], axis=1) # ini fungsinya ngehapus kolom kedua berdasarkan index
                 input(tabulate(data_pengguna, headers='keys', tablefmt='grid', showindex=range(1, len(data_pengguna)+1)))
             elif opsi_admin == 4:
                 username = input("\nMasukkan Username Pengguna yang akan diisi saldo: ").strip()
-                # Cek apakah username terdaftar
                 if cek_username_terdaftar(username):
                     try:
                         jumlah_tambah = float(input("Masukkan jumlah saldo yang ingin ditambahkan: "))
@@ -190,7 +394,15 @@ def akses_admin():
                         input('Harap masukkan nominal yang benar.')
                 else:
                     print("\nUsername tidak terdaftar. Saldo tidak dapat ditambahkan.")
-            elif opsi_admin == 5:
+            elif opsi_admin == 5: 
+                nama_petani = input("\nMasukkan Nama Petani: ").strip() 
+                skill_petani = input("Masukkan Skill Petani: ").strip() 
+                alamat_petani = input("Masukkan Alamat Petani: ").strip() 
+                data_petani = pd.read_csv('datapetani.csv') 
+                data_petani = data_petani._append({ 'Nama': nama_petani, 'Skill': skill_petani, 'Alamat': alamat_petani, 'Status': 'Tersedia' }, ignore_index=True)
+                data_petani.to_csv('datapetani.csv', index=False)
+                print("\nData petani berhasil ditambahkan.")      
+            elif opsi_admin == 6:
                 os.system('cls')
                 awal()
                 break
@@ -199,55 +411,16 @@ def akses_admin():
         except ValueError:
             input('\nHarap pilih menu yang ada.')
         
-def akses_pelanggan():
-    print(f'\nHai {username}, mau ngapain hari ini?')
-    print('='*50)
-    print('1. Pilih Jasa Petani.\n2. Cek Saldo.\n3. Keluar')
-    print('='*50)
-    try:
-        opsi_pelanggan= int(input('Silahkan pilih menu (1/2/3): '))
-        if opsi_pelanggan == 1 :
-            data_petani = pd.read_csv('datapetani.csv')
-            print("\n" + tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
-            pesan = int(input('Silahkan pilih nomor petani yang anda ingin pesan: '))
-            if pesan < 1 or pesan > len(data_petani): 
-                input('\nHarap pilih nomor petani yang ada.')
-                os.system('cls')
-                akses_pelanggan()
-                return
-            os.system('cls')
-            akses_pelanggan()
-        elif opsi_pelanggan == 2: 
-            # print(f"Username saat ini: {username}")
-            saldo = cek_saldo(username) 
-            # print(f"Saldo yang ditemukan: {saldo}")
-            if saldo is not None: 
-                input(f"\nSaldo Anda saat ini: Rp.{saldo:,.2f}") 
-            else: 
-                input("\nUsername tidak ditemukan.")
-        elif opsi_pelanggan == 3:
-            os.system('cls')
-            awal()
-            return
-        else :
-            input('\nHarap pilih menu yang ada.')
-            os.system('cls')
-            akses_pelanggan()
-    except ValueError:
-        input('\nHarap pilih menu yang ada.')
-        os.system('cls')
-        akses_pelanggan() 
-
 def awal():
     global opsi
     print('\nSelamat datang di Smart Farm!')
     print('='*50)
-    print('1. Log In (Masuk ke akun yang sudah ada.)\n2. Sign Up (Untuk mendaftar akun baru.)\n3. Lupa/Ganti Password\n4. Keluar')
+    print('1. Log In (Masuk ke akun yang sudah ada.)\n2. Sign Up (Untuk mendaftar akun baru.)\n3. Lupa/Ganti Password\n4. Ganti Username\n5. Keluar')
     print('='*50)
     
-    opsi = input('Silahkan pilih menu untuk masuk ke aplikasi (1/2/3/4): ')
+    opsi = input('Silahkan pilih menu untuk masuk ke aplikasi (1/2/3/4/5): ')
     
-    if opsi.isdigit() and int(opsi) in [1, 2, 3, 4]: # Ini meriksa kalau input itu angka dan termasuk di pilihan yang ada apa engga
+    if opsi.isdigit() and int(opsi) in [1, 2, 3, 4, 5]: # Ini meriksa kalau input itu angka dan termasuk di pilihan yang ada apa engga
         opsi = int(opsi)
         os.system('cls')
         akses(opsi)
