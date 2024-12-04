@@ -285,14 +285,11 @@ def checkout_sewa_petani(username):
 
             print(f"\nCheckout berhasil. Anda telah menyewa petani selama {lama_sewa} hari kerja dengan biaya Rp.{biaya_sewa:,.2f}")
             input(f"Sisa saldo Anda: Rp.{new_saldo:,.2f}")
-            akses_pelanggan()
         else:
             input('\nSaldo tidak mencukupi untuk melakukan sewa.')
-            akses_pelanggan()
     except ValueError:
         print('\nHarap masukkan nomor yang valid.')
-        os.system('cls')
-        akses_pelanggan()
+    os.system('cls')
 
 def lihat_riwayat_pembelian_pelanggan_admin():
     try:
