@@ -147,6 +147,8 @@ def akses(opsi):
         ganti_username(username, password, email)
     elif opsi == 5:
         print('\nTerima kasih sudah berkunjung!\n')
+        return True
+    return False
 
 def cek_username_terdaftar(username):
     # Membaca file datauser.csv
@@ -208,9 +210,6 @@ def update_saldo(username, new_saldo):
             return True
     return False
 
-import os
-import pandas as pd
-
 def simpan_riwayat_pembelian(username, nama_petani, skill_petani, lama_sewa, biaya_sewa, tanggal_mulai, tanggal_selesai):
     try:
         riwayat_data = {
@@ -257,7 +256,7 @@ def checkout_sewa_petani(username):
     print("\n" + tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
     
     try:
-        pilihan = int(input('Silahkan pilih nomor petani yang ingin Anda sewa: '))
+        pilihan = int(input('Silahkan pilih nomor petani yang ingin Anda sewa (Enter untuk keluar): '))
         if pilihan < 1 or pilihan > len(data_petani):
             input('\nHarap pilih nomor petani yang ada.')
             return
@@ -291,7 +290,8 @@ def checkout_sewa_petani(username):
             input('\nSaldo tidak mencukupi untuk melakukan sewa.')
             akses_pelanggan()
     except ValueError:
-        input('\nHarap masukkan nomor yang valid.')
+        print('\nHarap masukkan nomor yang valid.')
+        os.system('cls')
         akses_pelanggan()
 
 def lihat_riwayat_pembelian_pelanggan_admin():
@@ -316,41 +316,37 @@ def lihat_riwayat_pembelian(username):
         input("\nTidak ada riwayat pembelian yang ditemukan.")
 
 def akses_pelanggan():
-    print(f'\nHai {username}, mau ngapain hari ini?')
-    print('='*50)
-    print('1. Pilih Jasa Petani.\n2. Cek Saldo.\n3. Lihat Riwayat Pembelian\n4. Keluar')
-    print('='*50)
-    try:
-        opsi_pelanggan = int(input('Silahkan pilih menu (1/2/3/4): '))
-        if opsi_pelanggan == 1:
-            checkout_sewa_petani(username)
-            input('Tekan Enter untuk kembali ke menu.')
-            os.system('cls')
-            akses_pelanggan()
-        elif opsi_pelanggan == 2:
-            saldo = cek_saldo(username)
-            if saldo is not None:
-                print(f"\nSaldo Anda saat ini: Rp.{saldo:,.2f}")
-                input('Ingin melakukan top-up saldo? Silahkan menghubungi nomor di bawah:\n+6281359749043')
+    while True:
+        print(f'\nHai {username}, mau ngapain hari ini?')
+        print('='*50)
+        print('1. Pilih Jasa Petani.\n2. Cek Saldo.\n3. Lihat Riwayat Pembelian\n4. Keluar')
+        print('='*50)
+        try:
+            opsi_pelanggan = int(input('Silahkan pilih menu (1/2/3/4): '))
+            if opsi_pelanggan == 1:
+                checkout_sewa_petani(username)
+                os.system('cls')
+            elif opsi_pelanggan == 2:
+                saldo = cek_saldo(username)
+                if saldo is not None:
+                    print(f"\nSaldo Anda saat ini: Rp.{saldo:,.2f}")
+                    input('Ingin melakukan top-up saldo? Silahkan menghubungi nomor di bawah:\n+6281359749043')
+                else:
+                    input("\nUsername tidak ditemukan.")
+                os.system('cls')
+            elif opsi_pelanggan == 3:
+                lihat_riwayat_pembelian(username)
+                input('Tekan Enter untuk kembali ke menu.')
+                os.system('cls')
+            elif opsi_pelanggan == 4:
+                os.system('cls')
+                break
             else:
-                input("\nUsername tidak ditemukan.")
-            os.system('cls')
-            akses_pelanggan()
-        elif opsi_pelanggan == 3:
-            lihat_riwayat_pembelian(username)
-            os.system('cls')
-            akses_pelanggan()
-        elif opsi_pelanggan == 4:
-            os.system('cls')
-            awal()
-        else:
+                input('\nHarap pilih menu yang ada.')
+                os.system('cls')
+        except ValueError:
             input('\nHarap pilih menu yang ada.')
             os.system('cls')
-            akses_pelanggan()
-    except ValueError:
-        input('\nHarap pilih menu yang ada.')
-        os.system('cls')
-        akses_pelanggan()
 
 def akses_admin():
     while True:
@@ -411,21 +407,48 @@ def akses_admin():
         except ValueError:
             input('\nHarap pilih menu yang ada.')
         
+def akses(opsi):
+    global username, email
+    if opsi == 1:
+        username = input('\nMasukkan Username: ').strip()
+        password = getpass.getpass('Masukkan Password: ')
+        logIn(username, password)
+    elif opsi == 2:
+        username = input('\nMasukkan Username Baru: ').strip()
+        password = input('Masukkan Password Baru: ')
+        email = input('Masukkan alamat email: ').strip()
+        signUp(username, password, email)
+    elif opsi == 3:
+        username = input('\nMasukkan Username: ').strip()
+        email = input('Masukkan alamat email: ').strip()
+        lupa_password(username, email)
+    elif opsi == 4:
+        username = input('\nMasukkan Username: ').strip()
+        password = input('Masukkan Password: ')
+        email = input('Masukkan alamat email: ').strip()
+        ganti_username(username, password, email)
+    elif opsi == 5:
+        print('\nTerima kasih sudah berkunjung!\n')
+        return True
+    return False
+
 def awal():
-    global opsi
-    print('\nSelamat datang di Smart Farm!')
-    print('='*50)
-    print('1. Log In (Masuk ke akun yang sudah ada.)\n2. Sign Up (Untuk mendaftar akun baru.)\n3. Lupa/Ganti Password\n4. Ganti Username\n5. Keluar')
-    print('='*50)
-    
-    opsi = input('Silahkan pilih menu untuk masuk ke aplikasi (1/2/3/4/5): ')
-    
-    if opsi.isdigit() and int(opsi) in [1, 2, 3, 4, 5]: # Ini meriksa kalau input itu angka dan termasuk di pilihan yang ada apa engga
-        opsi = int(opsi)
-        os.system('cls')
-        akses(opsi)
-    else:
-        input('\nHarap pilih menu yang ada.')
-        awal()
+    while True:
+        global opsi
+        print('\nSelamat datang di Smart Farm!')
+        print('='*50)
+        print('1. Log In (Masuk ke akun yang sudah ada.)\n2. Sign Up (Untuk mendaftar akun baru.)\n3. Lupa/Ganti Password\n4. Ganti Username\n5. Keluar')
+        print('='*50)
+        
+        opsi = input('Silahkan pilih menu untuk masuk ke aplikasi (1/2/3/4/5): ')
+        
+        if opsi.isdigit() and int(opsi) in [1, 2, 3, 4, 5]:
+            opsi = int(opsi)
+            os.system('cls')
+            if akses(opsi):
+                break
+        else:
+            input('\nHarap pilih menu yang ada.')
+            os.system('cls')
 
 awal()
