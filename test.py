@@ -32,6 +32,9 @@ def logIn(username, password):
 
 
 def signUp(username, password, email):
+    if not username or not password or not email: 
+        input('\nUsername, password, dan email tidak boleh kosong. Silahkan coba lagi.')
+        return
     # bagian cek apa username sudah ada di datauser atau ngga
     file = open("datauser.csv", "r")
     for i in file:
@@ -40,8 +43,6 @@ def signUp(username, password, email):
             if a == username:
                 input('\nUsername tidak tersedia. Silahkan gunakan username lain.')
                 file.close()
-                os.system('cls')
-                awal()
                 return
         except ValueError:
             continue
@@ -49,48 +50,46 @@ def signUp(username, password, email):
     nsaldo = "0"
     # bagian nambahin data pengguna kalau belum ada
     file = open("datauser.csv", "a")
-    file.write(username + "," + password + "," + email + "," + nsaldo)
+    file.write(username + "," + password + "," + email + "," + nsaldo + "\n")
     file.close()
     input('Sign Up berhasil, silahkan masuk.')
-    awal()
+    os.system('cls')
 
 def lupa_password(username, email):
     sukses = False
-    file = open("datauser.csv", "r")
-    lines = file.readlines()  # Ini fungsi buat manipulasi csv per baris
-    file.close()
-    
+    lines = []
+
+    with open("datauser.csv", "r") as file:
+        lines = file.readlines()
+
     for i in lines:
         try:
-            a, b, c = i.split(',', 2)
-            c = c.strip()
+            a, b, c, d = i.strip().split(',')
             if a == username and c == email:
                 sukses = True
                 break
         except ValueError:
-            continue  
+            continue
     
     if sukses:
         new_password = input('Masukkan password baru: ').strip()
-        file = open("datauser.csv", "w")
-        for i in lines:
-            try:
-                a, b, c = i.split(',', 2)
-                c = c.strip()
-                if a == username and c == email:
-                    file.write(f"{username},{new_password},{email}\n")
-                else:
-                    file.write(i)
-            except ValueError:
-                file.write(i)  # nulis ulang baris yang gk sesuai format
-        file.close()
+        
+        with open("datauser.csv", "w", newline='') as file:
+            for i in lines:
+                try:
+                    a, b, c, d = i.strip().split(',')
+                    if a == username and c == email:
+                        file.write(f"{username},{new_password},{email},{d}\n")
+                    else:
+                        file.write(f"{a},{b},{c},{d}\n")
+                except ValueError:
+                    file.write(i)  # Menulis ulang baris yang tidak sesuai format
+        
         input('\nPassword berhasil diganti.\nSilahkan login dengan password baru.')
         os.system('cls')
-        awal()
     else:
         input('\nUsername atau email tidak terdaftar.\nSilahkan coba lagi.')
         os.system('cls')
-        awal()
 
 def ganti_username(username, password, email):
     sukses = False
@@ -119,11 +118,9 @@ def ganti_username(username, password, email):
 
         input('\nUsername berhasil diganti.\nSilahkan login dengan username baru.')
         os.system('cls')
-        awal()
     else:
         input('\nUsername, password, atau email tidak terdaftar.\nSilahkan coba lagi.')
         os.system('cls')
-        awal()
 
 def akses(opsi):
     global username, email
@@ -186,11 +183,6 @@ def tambah_saldo_admin(username, jumlah_tambah):
         writer = csv.writer(file)
         writer.writerows(data)
 
-import os
-import pandas as pd
-from tabulate import tabulate
-from datetime import datetime, timedelta
-
 def cek_saldo(username):
     try:
         data_saldo = pd.read_csv('datauser.csv')
@@ -225,7 +217,7 @@ def simpan_riwayat_pembelian(username, nama_petani, skill_petani, lama_sewa, bia
         # cek misal file riwayat pembelian udah ada
         if os.path.isfile('riwayat_pembelian.csv'):
             existing_data = pd.read_csv('riwayat_pembelian.csv')
-            updated_data = existing_data.append(riwayat_data, ignore_index=True)
+            updated_data = existing_data._append(riwayat_data, ignore_index=True)
             updated_data.to_csv('riwayat_pembelian.csv', index=False)
         else:
             riwayat_df = pd.DataFrame([riwayat_data])
@@ -254,11 +246,16 @@ def cetak_nota(username, nama_petani, skill_petani, lama_sewa, biaya_sewa, tangg
 def checkout_sewa_petani(username):
     data_petani = pd.read_csv('datapetani.csv')
     print("\n" + tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
-    
+
     try:
         pilihan = int(input('Silahkan pilih nomor petani yang ingin Anda sewa (Enter untuk keluar): '))
         if pilihan < 1 or pilihan > len(data_petani):
             input('\nHarap pilih nomor petani yang ada.')
+            return
+
+        status_petani = data_petani.at[pilihan - 1, 'Status']
+        if status_petani.lower() != 'tersedia':
+            input('\nPetani tidak tersedia untuk disewa.')
             return
 
         saldo_anda = cek_saldo(username)
@@ -282,6 +279,9 @@ def checkout_sewa_petani(username):
 
             cetak_nota(username, nama_petani, skill_petani, lama_sewa, biaya_sewa, tanggal_mulai, tanggal_selesai)
             simpan_riwayat_pembelian(username, nama_petani, skill_petani, lama_sewa, biaya_sewa, tanggal_mulai, tanggal_selesai)
+
+            data_petani.at[pilihan - 1, 'Status'] = 'Tidak Tersedia'
+            data_petani.to_csv('datapetani.csv', index=False)
 
             print(f"\nCheckout berhasil. Anda telah menyewa petani selama {lama_sewa} hari kerja dengan biaya Rp.{biaya_sewa:,.2f}")
             input(f"Sisa saldo Anda: Rp.{new_saldo:,.2f}")
@@ -322,7 +322,6 @@ def akses_pelanggan():
             opsi_pelanggan = int(input('Silahkan pilih menu (1/2/3/4): '))
             if opsi_pelanggan == 1:
                 checkout_sewa_petani(username)
-                os.system('cls')
             elif opsi_pelanggan == 2:
                 saldo = cek_saldo(username)
                 if saldo is not None:
@@ -330,11 +329,8 @@ def akses_pelanggan():
                     input('Ingin melakukan top-up saldo? Silahkan menghubungi nomor di bawah:\n+6281359749043')
                 else:
                     input("\nUsername tidak ditemukan.")
-                os.system('cls')
             elif opsi_pelanggan == 3:
                 lihat_riwayat_pembelian(username)
-                input('Tekan Enter untuk kembali ke menu.')
-                os.system('cls')
             elif opsi_pelanggan == 4:
                 os.system('cls')
                 break
@@ -349,27 +345,28 @@ def akses_admin():
     while True:
         print('\nHalo Admin!\nMau ngapain hari ini?')
         print('='*50)
-        print('1. Data Petani\n2. Data Pesanan\n3. Data Pengguna\n4. Tambah saldo user\n5. Tambah Data Petani\n6. Keluar')
+        print('1. Data Petani\n2. Data Pesanan\n3. Data Pengguna\n4. Tambah saldo user\n5. Tambah Data Petani\n6. Hapus Data Petani\n7. Hapus Riwayat Pembelian\n8. Keluar')
         print('='*50)
         try:
-            opsi_admin = int(input('Silahkan pilih menu (1/2/3/4/5): '))
+            opsi_admin = int(input('Silahkan pilih menu (1/2/3/4/5/6/7/8): '))
             if opsi_admin == 1:
                 data_petani = pd.read_csv('datapetani.csv')
                 input(tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
-                try: 
-                    petani_index = int(input('Silahkan pilih nomor petani yang ingin diubah statusnya: ')) 
+                try:
+                    petani_index = int(input('Silahkan pilih nomor petani yang ingin diubah statusnya: '))
                     if petani_index == 0:
                         input('Tidak ada perubahan status yang dilakukan.')
-                    elif petani_index < 1 or petani_index > len(data_petani): 
+                    elif petani_index < 1 or petani_index > len(data_petani):
                         input('\nHarap pilih nomor petani yang ada.')
-                    else: 
-                        status_sekarang = data_petani.at[petani_index - 1, 'Status'] 
+                    else:
+                        status_sekarang = data_petani.at[petani_index - 1, 'Status']
                         status_baru = 'Tidak Tersedia' if status_sekarang == 'Tersedia' else 'Tersedia'
                         data_petani.at[petani_index - 1, 'Status'] = status_baru
                         print('\nStatus berhasil diubah.')
                         input(tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
                         data_petani.to_csv('datapetani.csv', index=False)
-                except ValueError: input('\nHarap masukkan nomor yang valid.')
+                except ValueError:
+                    input('\nHarap masukkan nomor yang valid.')
             elif opsi_admin == 2:
                 lihat_riwayat_pembelian_pelanggan_admin()
                 os.system('cls')
@@ -387,17 +384,42 @@ def akses_admin():
                         input('Harap masukkan nominal yang benar.')
                 else:
                     print("\nUsername tidak terdaftar. Saldo tidak dapat ditambahkan.")
-            elif opsi_admin == 5: 
-                nama_petani = input("\nMasukkan Nama Petani: ").strip() 
-                skill_petani = input("Masukkan Skill Petani: ").strip() 
-                alamat_petani = input("Masukkan Alamat Petani: ").strip() 
-                data_petani = pd.read_csv('datapetani.csv') 
-                data_petani = data_petani._append({ 'Nama': nama_petani, 'Skill': skill_petani, 'Alamat': alamat_petani, 'Status': 'Tersedia' }, ignore_index=True)
+            elif opsi_admin == 5:
+                nama_petani = input("\nMasukkan Nama Petani: ").strip()
+                skill_petani = input("Masukkan Skill Petani: ").strip()
+                alamat_petani = input("Masukkan Alamat Petani: ").strip()
+                data_petani = pd.read_csv('datapetani.csv')
+                data_petani = data_petani._append({'Nama': nama_petani, 'Skill': skill_petani, 'Alamat': alamat_petani, 'Status': 'Tersedia'}, ignore_index=True)
                 data_petani.to_csv('datapetani.csv', index=False)
-                print("\nData petani berhasil ditambahkan.")      
+                print("\nData petani berhasil ditambahkan.")
             elif opsi_admin == 6:
+                data_petani = pd.read_csv('datapetani.csv')
+                print("\n" + tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
+                try:
+                    petani_index = int(input('Silahkan pilih nomor petani yang ingin dihapus: '))
+                    if petani_index < 1 or petani_index > len(data_petani):
+                        input('\nHarap pilih nomor petani yang ada.')
+                    else:
+                        data_petani = data_petani.drop(petani_index - 1)
+                        data_petani.to_csv('datapetani.csv', index=False)
+                        print('\nData petani berhasil dihapus.')
+                except ValueError:
+                    input('\nHarap masukkan nomor yang valid.')
+            elif opsi_admin == 7:
+                data_riwayat = pd.read_csv('riwayat_pembelian.csv')
+                print("\n" + tabulate(data_riwayat, headers='keys', tablefmt='grid', showindex=range(1, len(data_riwayat)+1)))
+                try:
+                    riwayat_index = int(input('Silahkan pilih nomor riwayat pembelian yang ingin dihapus: '))
+                    if riwayat_index < 1 or riwayat_index > len(data_riwayat):
+                        input('\nHarap pilih nomor riwayat pembelian yang ada.')
+                    else:
+                        data_riwayat = data_riwayat.drop(riwayat_index - 1)
+                        data_riwayat.to_csv('riwayat_pembelian.csv', index=False)
+                        print('\nRiwayat pembelian berhasil dihapus.')
+                except ValueError:
+                    input('\nHarap masukkan nomor yang valid.')
+            elif opsi_admin == 8:
                 os.system('cls')
-                awal()
                 break
             else:
                 input('\nHarap pilih menu yang ada.')
