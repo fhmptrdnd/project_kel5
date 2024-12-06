@@ -59,6 +59,10 @@ def lupa_password(username, email):
     sukses = False
     lines = []
 
+    if not username or not email:
+        input('\nUsername dan email tidak boleh kosong. Silahkan coba lagi.')
+        return
+
     with open("datauser.csv", "r") as file:
         lines = file.readlines()
 
@@ -72,18 +76,26 @@ def lupa_password(username, email):
             continue
     
     if sukses:
-        new_password = input('Masukkan password baru: ').strip()
+        while True:
+            new_password = input('Masukkan password baru: ').strip()
+            if not new_password:
+                input('\nPassword baru tidak boleh kosong. Silahkan coba lagi.')
+            else:
+                break
         
+        updated_lines = []
+        for i in lines:
+            try:
+                a, b, c, d = i.strip().split(',')
+                if a == username and c == email:
+                    updated_lines.append(f"{username},{new_password},{email},{d}\n")
+                else:
+                    updated_lines.append(f"{a},{b},{c},{d}\n")
+            except ValueError:
+                updated_lines.append(i)  # Menulis ulang baris yang tidak sesuai format
+
         with open("datauser.csv", "w", newline='') as file:
-            for i in lines:
-                try:
-                    a, b, c, d = i.strip().split(',')
-                    if a == username and c == email:
-                        file.write(f"{username},{new_password},{email},{d}\n")
-                    else:
-                        file.write(f"{a},{b},{c},{d}\n")
-                except ValueError:
-                    file.write(i)  # Menulis ulang baris yang tidak sesuai format
+            file.writelines(updated_lines)
         
         input('\nPassword berhasil diganti.\nSilahkan login dengan password baru.')
         os.system('cls')
@@ -95,23 +107,33 @@ def ganti_username(username, password, email):
     sukses = False
     data = []
 
-    # Membaca file CSV
+    if not username or not password or not email:
+        input('\nUsername, password, dan email tidak boleh kosong. Silahkan coba lagi.')
+        return
+
     with open("datauser.csv", "r", newline='') as file:
         reader = csv.reader(file)
         for row in reader:
-            if len(row) >= 3:  
+            if len(row) >= 3:
                 user, pwd, mail = row[0].strip(), row[1].strip(), row[2].strip()
                 if user == username and pwd == password and mail == email:
                     sukses = True
                     print("\nUsername, password, dan email ditemukan.")
                 data.append(row)
-    
+
     if sukses:
-        new_username = input('Masukkan username baru: ').strip()
+        while True:
+            new_username = input('Masukkan username baru: ').strip()
+            if not new_username:
+                input('\nUsername baru tidak boleh kosong. Silahkan coba lagi.')
+            else:
+                break
+
         for row in data:
             user, pwd, mail = row[0].strip(), row[1].strip(), row[2].strip()
             if user == username and pwd == password and mail == email:
-                row[0] = new_username  
+                row[0] = new_username
+        
         with open("datauser.csv", "w", newline='') as file:
             writer = csv.writer(file)
             writer.writerows(data)
