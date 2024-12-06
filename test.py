@@ -410,6 +410,11 @@ def akses_admin():
                 nama_petani = input("\nMasukkan Nama Petani: ").strip()
                 skill_petani = input("Masukkan Skill Petani: ").strip()
                 alamat_petani = input("Masukkan Alamat Petani: ").strip()
+                if not nama_petani or not skill_petani or not alamat_petani:
+                    input('\nUsername dan email tidak boleh kosong. Silahkan coba lagi.')
+                    akses_admin()
+                else:
+                    break
                 data_petani = pd.read_csv('datapetani.csv')
                 data_petani = data_petani._append({'Nama': nama_petani, 'Skill': skill_petani, 'Alamat': alamat_petani, 'Status': 'Tersedia'}, ignore_index=True)
                 data_petani.to_csv('datapetani.csv', index=False)
@@ -447,6 +452,7 @@ def akses_admin():
                 input('\nHarap pilih menu yang ada.')
         except ValueError:
             input('\nHarap pilih menu yang ada.')
+        os.system('cls')    
         
 def akses(opsi):
     global username, email
