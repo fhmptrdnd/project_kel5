@@ -183,13 +183,15 @@ def cek_username_terdaftar(username):
 
 def tambah_saldo_admin(username, jumlah_tambah):
     data = []
+    found = False
 
     with open("datauser.csv", "r", newline='') as file:
         reader = csv.reader(file)
         for row in reader:
-            if len(row) == 4:  # pastiin ada 4 kolom (Username, Password, Email, Saldo)
+            if len(row) == 4:  # Pastikan ada 4 kolom (Username, Password, Email, Saldo)
                 user, pwd, mail, saldo = row[0].strip(), row[1].strip(), row[2].strip(), row[3].strip()
                 if user == username:
+                    found = True
                     try:
                         new_saldo = float(saldo) + jumlah_tambah if saldo else jumlah_tambah
                     except ValueError:
@@ -200,10 +202,13 @@ def tambah_saldo_admin(username, jumlah_tambah):
             else:
                 data.append(row)
 
-    # Menulis ulang file CSV dengan data yang sudah di-update
+    if not found:
+        print(f"Username {username} tidak ditemukan.")
+
     with open("datauser.csv", "w", newline='') as file:
         writer = csv.writer(file)
         writer.writerows(data)
+    return found
 
 def cek_saldo(username):
     try:
@@ -317,18 +322,27 @@ def lihat_riwayat_pembelian_pelanggan_admin():
     try:
         data_riwayat = pd.read_csv('riwayat_pembelian.csv')
         if not data_riwayat.empty:
+            # Mengatur lebar maksimum untuk kolom
+            max_colwidth = 25
+            for col in data_riwayat.columns:
+                data_riwayat[col] = data_riwayat[col].astype(str).apply(lambda x: x if len(x) <= max_colwidth else x[:max_colwidth] + '...')
+            
             input("\n" + tabulate(data_riwayat, headers='keys', tablefmt='grid', showindex=range(1, len(data_riwayat)+1)))
         else:
             input("\nTidak ada riwayat pembelian yang ditemukan.")
     except FileNotFoundError:
         input("\nTidak ada riwayat pembelian yang ditemukan.")
-    os.system('cls')
 
 def lihat_riwayat_pembelian(username):
     try:
         data_riwayat = pd.read_csv('riwayat_pembelian.csv')
         riwayat_user = data_riwayat[data_riwayat['Username'] == username]
         if not riwayat_user.empty:
+            # Mengatur lebar maksimum untuk kolom
+            max_colwidth = 25
+            for col in riwayat_user.columns:
+                riwayat_user[col] = riwayat_user[col].astype(str).apply(lambda x: x if len(x) <= max_colwidth else x[:max_colwidth] + '...')
+            
             input("\n" + tabulate(riwayat_user, headers='keys', tablefmt='grid', showindex=range(1, len(riwayat_user)+1)))
         else:
             input("\nTidak ada riwayat pembelian untuk user ini.")
@@ -368,7 +382,7 @@ def akses_admin():
     while True:
         print('\nHalo Admin!\nMau ngapain hari ini?')
         print('='*50)
-        print('1. Data Petani\n2. Data Pesanan\n3. Data Pengguna\n4. Tambah saldo user\n5. Tambah Data Petani\n6. Hapus Data Petani\n7. Hapus Riwayat Pembelian\n8. Keluar')
+        print('1. Data Petani\n2. Data Pesanan\n3. Data Pengguna\n4. Tambah saldo user\n5. Tambah Data Petani\n6. Hapus Data Petani\n7. Hapus Riwayat Pesanan\n8. Keluar')
         print('='*50)
         try:
             opsi_admin = int(input('Silahkan pilih menu (1/2/3/4/5/6/7/8): '))
@@ -402,24 +416,25 @@ def akses_admin():
                 if cek_username_terdaftar(username):
                     try:
                         jumlah_tambah = float(input("Masukkan jumlah saldo yang ingin ditambahkan: "))
-                        tambah_saldo_admin(username, jumlah_tambah)
+                        if tambah_saldo_admin(username, jumlah_tambah):
+                            input('Saldo berhasil ditambahkan.\n')
+                        else:
+                            input('Username tidak ditemukan. Tidak ada saldo yang ditambahkan.\n')
                     except ValueError:
                         input('Harap masukkan nominal yang benar.')
                 else:
-                    print("\nUsername tidak terdaftar. Saldo tidak dapat ditambahkan.")
+                    input("\nUsername tidak terdaftar. Saldo tidak dapat ditambahkan.")
             elif opsi_admin == 5:
                 nama_petani = input("\nMasukkan Nama Petani: ").strip()
                 skill_petani = input("Masukkan Skill Petani: ").strip()
                 alamat_petani = input("Masukkan Alamat Petani: ").strip()
                 if not nama_petani or not skill_petani or not alamat_petani:
-                    input('\nUsername dan email tidak boleh kosong. Silahkan coba lagi.')
-                    akses_admin()
-                    break
+                    input('\nData tidak boleh ada yang kosong. Silahkan coba lagi.')
                 else:
                     data_petani = pd.read_csv('datapetani.csv')
                     data_petani = data_petani._append({'Nama': nama_petani, 'Skill': skill_petani, 'Alamat': alamat_petani, 'Status': 'Tersedia'}, ignore_index=True)
                     data_petani.to_csv('datapetani.csv', index=False)
-                    print("\nData petani berhasil ditambahkan.")
+                    input("\nData petani berhasil ditambahkan.")
             elif opsi_admin == 6:
                 data_petani = pd.read_csv('datapetani.csv')
                 print("\n" + tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
@@ -430,12 +445,13 @@ def akses_admin():
                     else:
                         data_petani = data_petani.drop(petani_index - 1)
                         data_petani.to_csv('datapetani.csv', index=False)
-                        print('\nData petani berhasil dihapus.')
+                        input('\nData petani berhasil dihapus.')
                 except ValueError:
                     input('\nHarap masukkan nomor yang valid.')
             elif opsi_admin == 7:
                 data_riwayat = pd.read_csv('riwayat_pembelian.csv')
-                print("\n" + tabulate(data_riwayat, headers='keys', tablefmt='grid', showindex=range(1, len(data_riwayat)+1)))
+                lihat_riwayat_pembelian_pelanggan_admin()
+                # print("\n" + tabulate(data_riwayat, headers='keys', tablefmt='grid', showindex=range(1, len(data_riwayat)+1)))
                 try:
                     riwayat_index = int(input('Silahkan pilih nomor riwayat pembelian yang ingin dihapus: '))
                     if riwayat_index < 1 or riwayat_index > len(data_riwayat):
@@ -443,7 +459,7 @@ def akses_admin():
                     else:
                         data_riwayat = data_riwayat.drop(riwayat_index - 1)
                         data_riwayat.to_csv('riwayat_pembelian.csv', index=False)
-                        print('\nRiwayat pembelian berhasil dihapus.')
+                        input('\nRiwayat pembelian berhasil dihapus.')
                 except ValueError:
                     input('\nHarap masukkan nomor yang valid.')
             elif opsi_admin == 8:
@@ -453,7 +469,7 @@ def akses_admin():
                 input('\nHarap pilih menu yang ada.')
         except ValueError:
             input('\nHarap pilih menu yang ada.')
-        os.system('cls')    
+        os.system('cls')
         
 def akses(opsi):
     global username, email
