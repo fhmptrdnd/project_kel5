@@ -322,6 +322,7 @@ def lihat_riwayat_pembelian_pelanggan_admin():
             input("\nTidak ada riwayat pembelian yang ditemukan.")
     except FileNotFoundError:
         input("\nTidak ada riwayat pembelian yang ditemukan.")
+    os.system('cls')
 
 def lihat_riwayat_pembelian(username):
     try:
@@ -413,12 +414,12 @@ def akses_admin():
                 if not nama_petani or not skill_petani or not alamat_petani:
                     input('\nUsername dan email tidak boleh kosong. Silahkan coba lagi.')
                     akses_admin()
-                else:
                     break
-                data_petani = pd.read_csv('datapetani.csv')
-                data_petani = data_petani._append({'Nama': nama_petani, 'Skill': skill_petani, 'Alamat': alamat_petani, 'Status': 'Tersedia'}, ignore_index=True)
-                data_petani.to_csv('datapetani.csv', index=False)
-                print("\nData petani berhasil ditambahkan.")
+                else:
+                    data_petani = pd.read_csv('datapetani.csv')
+                    data_petani = data_petani._append({'Nama': nama_petani, 'Skill': skill_petani, 'Alamat': alamat_petani, 'Status': 'Tersedia'}, ignore_index=True)
+                    data_petani.to_csv('datapetani.csv', index=False)
+                    print("\nData petani berhasil ditambahkan.")
             elif opsi_admin == 6:
                 data_petani = pd.read_csv('datapetani.csv')
                 print("\n" + tabulate(data_petani, headers='keys', tablefmt='grid', showindex=range(1, len(data_petani)+1)))
@@ -482,6 +483,13 @@ def akses(opsi):
 def awal():
     while True:
         global opsi
+        print("░██████╗███╗░░░███╗░█████╗░██████╗░████████╗   ███████╗░█████╗░██████╗░███╗░░░███╗")
+        print("██╔════╝████╗░████║██╔══██╗██╔══██╗╚══██╔══╝   ██╔════╝██╔══██╗██╔══██╗████╗░████║")
+        print("╚█████╗░██╔████╔██║███████║██████╔╝░░░██║░░░   █████╗░░███████║██████╔╝██╔████╔██║")
+        print("░╚═══██╗██║╚██╔╝██║██╔══██║██╔══██╗░░░██║░░░   ██╔══╝░░██╔══██║██╔══██╗██║╚██╔╝██║")
+        print("██████╔╝██║░╚═╝░██║██║░░██║██║░░██║░░░██║░░░   ██║░░░░░██║░░██║██║░░██║██║░╚═╝░██║")
+        input("╚═════╝░╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝░░╚═╝░░░╚═╝░░░   ╚═╝░░░░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░░░░╚═╝")
+
         print('\nSelamat datang di Smart Farm!')
         print('='*50)
         print('1. Log In (Masuk ke akun yang sudah ada.)\n2. Sign Up (Untuk mendaftar akun baru.)\n3. Lupa/Ganti Password\n4. Ganti Username\n5. Keluar')
