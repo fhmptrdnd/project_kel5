@@ -144,31 +144,6 @@ def ganti_username(username, password, email):
         input('\nUsername, password, atau email tidak terdaftar.\nSilahkan coba lagi.')
         os.system('cls')
 
-def akses(opsi):
-    global username, email
-    if opsi == 1:
-        username = input('\nMasukkan Username: ').strip()
-        password = getpass.getpass('Masukkan Password: ')
-        logIn(username, password)
-    elif opsi == 2:
-        username = input('\nMasukkan Username Baru: ').strip()
-        password = input('Masukkan Password Baru: ')
-        email = input('Masukkan alamat email: ').strip()
-        signUp(username, password, email)
-    elif opsi == 3:
-        username = input('\nMasukkan Username: ').strip()
-        email = input('Masukkan alamat email: ').strip()
-        lupa_password(username, email)
-    elif opsi == 4:
-        username = input('\nMasukkan Username: ').strip()
-        password = input('Masukkan Password: ')
-        email = input('Masukkan alamat email: ').strip()
-        ganti_username(username, password, email)
-    elif opsi == 5:
-        print('\nTerima kasih sudah berkunjung!\n')
-        return True
-    return False
-
 def cek_username_terdaftar(username):
     # Membaca file datauser.csv
     with open("datauser.csv", "r") as file:
