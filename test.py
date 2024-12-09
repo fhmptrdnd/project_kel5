@@ -28,8 +28,6 @@ def logIn(username, password):
     else:
         input('\nUsername atau password salah atau tidak terdaftar.\nJika belum memiliki akun, silahkan Sign Up terlebih dahulu.\n(Lupa password? Pilih menu nomor 3.)')
         os.system('cls')
-        awal()
-
 
 def signUp(username, password, email):
     if not username or not password or not email: 
@@ -470,41 +468,18 @@ def akses_admin():
         except ValueError:
             input('\nHarap pilih menu yang ada.')
         os.system('cls')
-        
-def akses(opsi):
-    global username, email
-    if opsi == 1:
-        username = input('\nMasukkan Username: ').strip()
-        password = getpass.getpass('Masukkan Password: ')
-        logIn(username, password)
-    elif opsi == 2:
-        username = input('\nMasukkan Username Baru: ').strip()
-        password = input('Masukkan Password Baru: ')
-        email = input('Masukkan alamat email: ').strip()
-        signUp(username, password, email)
-    elif opsi == 3:
-        username = input('\nMasukkan Username: ').strip()
-        email = input('Masukkan alamat email: ').strip()
-        lupa_password(username, email)
-    elif opsi == 4:
-        username = input('\nMasukkan Username: ').strip()
-        password = input('Masukkan Password: ')
-        email = input('Masukkan alamat email: ').strip()
-        ganti_username(username, password, email)
-    elif opsi == 5:
-        print('\nTerima kasih sudah berkunjung!\n')
-        return True
-    return False
 
 def awal():
     while True:
         global opsi
-        print("░██████╗███╗░░░███╗░█████╗░██████╗░████████╗   ███████╗░█████╗░██████╗░███╗░░░███╗")
-        print("██╔════╝████╗░████║██╔══██╗██╔══██╗╚══██╔══╝   ██╔════╝██╔══██╗██╔══██╗████╗░████║")
-        print("╚█████╗░██╔████╔██║███████║██████╔╝░░░██║░░░   █████╗░░███████║██████╔╝██╔████╔██║")
-        print("░╚═══██╗██║╚██╔╝██║██╔══██║██╔══██╗░░░██║░░░   ██╔══╝░░██╔══██║██╔══██╗██║╚██╔╝██║")
-        print("██████╔╝██║░╚═╝░██║██║░░██║██║░░██║░░░██║░░░   ██║░░░░░██║░░██║██║░░██║██║░╚═╝░██║")
-        input("╚═════╝░╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝░░╚═╝░░░╚═╝░░░   ╚═╝░░░░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░░░░╚═╝")
+        input(f'''
+    ░██████╗███╗░░░███╗░█████╗░██████╗░████████╗   ███████╗░█████╗░██████╗░███╗░░░███╗
+    ██╔════╝████╗░████║██╔══██╗██╔══██╗╚══██╔══╝   ██╔════╝██╔══██╗██╔══██╗████╗░████║
+    ╚█████╗░██╔████╔██║███████║██████╔╝░░░██║░░░   █████╗░░███████║██████╔╝██╔████╔██║
+    ░╚═══██╗██║╚██╔╝██║██╔══██║██╔══██╗░░░██║░░░   ██╔══╝░░██╔══██║██╔══██╗██║╚██╔╝██║
+    ██████╔╝██║░╚═╝░██║██║░░██║██║░░██║░░░██║░░░   ██║░░░░░██║░░██║██║░░██║██║░╚═╝░██║
+    ╚═════╝░╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝░░╚═╝░░░╚═╝░░░   ╚═╝░░░░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░░░░╚═╝
+        ''')
 
         print('\nSelamat datang di Smart Farm!')
         print('='*50)
