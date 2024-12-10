@@ -32,9 +32,9 @@ def logIn(username, password):
 def signUp(username, password, email):
     if not username or not password or not email: 
         input('\nUsername, password, dan email tidak boleh kosong. Silahkan coba lagi.')
+        os.system('cls')
         return
-    # bagian cek apa username sudah ada di datauser atau ngga
-    file = open("datauser.csv", "r")
+    file = open("datauser.csv", "r")  # bagian cek apa username sudah ada di datauser atau ngga
     for i in file:
         try:
             a, _, _ = i.split(',', 2)
@@ -46,8 +46,7 @@ def signUp(username, password, email):
             continue
     file.close()
     nsaldo = "0"
-    # bagian nambahin data pengguna kalau belum ada
-    file = open("datauser.csv", "a")
+    file = open("datauser.csv", "a")    # bagian nambahin data pengguna kalau belum ada
     file.write(username + "," + password + "," + email + "," + nsaldo + "\n")
     file.close()
     input('Sign Up berhasil, silahkan masuk.')
@@ -59,6 +58,7 @@ def lupa_password(username, email):
 
     if not username or not email:
         input('\nUsername dan email tidak boleh kosong. Silahkan coba lagi.')
+        os.system('cls')
         return
 
     with open("datauser.csv", "r") as file:
@@ -78,6 +78,7 @@ def lupa_password(username, email):
             new_password = input('Masukkan password baru: ').strip()
             if not new_password:
                 input('\nPassword baru tidak boleh kosong. Silahkan coba lagi.')
+                os.system('cls')
             else:
                 break
         
@@ -168,7 +169,6 @@ def akses(opsi):
     return False
 
 def cek_username_terdaftar(username):
-    # Membaca file datauser.csv
     with open("datauser.csv", "r") as file:
         for i in file:
             try:
@@ -186,14 +186,14 @@ def tambah_saldo_admin(username, jumlah_tambah):
     with open("datauser.csv", "r", newline='') as file:
         reader = csv.reader(file)
         for row in reader:
-            if len(row) == 4:  # Pastikan ada 4 kolom (Username, Password, Email, Saldo)
+            if len(row) == 4:  
                 user, pwd, mail, saldo = row[0].strip(), row[1].strip(), row[2].strip(), row[3].strip()
                 if user == username:
                     found = True
                     try:
                         new_saldo = float(saldo) + jumlah_tambah if saldo else jumlah_tambah
                     except ValueError:
-                        new_saldo = jumlah_tambah  # Jika saldo saat ini kosong atau tidak valid, set saldo baru
+                        new_saldo = jumlah_tambah  
                     row[3] = str(new_saldo)
                     print(f"Saldo untuk {username} berhasil ditambahkan sebesar {jumlah_tambah}.")
                 data.append(row)
@@ -336,7 +336,7 @@ def lihat_riwayat_pembelian(username):
         data_riwayat = pd.read_csv('riwayat_pembelian.csv')
         riwayat_user = data_riwayat[data_riwayat['Username'] == username]
         if not riwayat_user.empty:
-            # Mengatur lebar maksimum untuk kolom
+            # ngatur lebar maksimum kolom
             max_colwidth = 25
             for col in riwayat_user.columns:
                 riwayat_user[col] = riwayat_user[col].astype(str).apply(lambda x: x if len(x) <= max_colwidth else x[:max_colwidth] + '...')
@@ -360,7 +360,7 @@ def akses_pelanggan():
             elif opsi_pelanggan == 2:
                 saldo = cek_saldo(username)
                 if saldo is not None:
-                    print(f"\nSaldo Anda saat ini: Rp.{saldo:,.2f}")
+                    print(f"\nSaldo Anda saat ini: Rp. {saldo:,.2f}")
                     input('Ingin melakukan top-up saldo? Silahkan menghubungi nomor di bawah:\n+6281359749043')
                 else:
                     input("\nUsername tidak ditemukan.")
@@ -407,8 +407,19 @@ def akses_admin():
                 os.system('cls')
             elif opsi_admin == 3:
                 data_pengguna = pd.read_csv('datauser.csv')
-                data_pengguna = data_pengguna.drop(data_pengguna.columns[1], axis=1) # ini fungsinya ngehapus kolom kedua berdasarkan index
-                input(tabulate(data_pengguna, headers='keys', tablefmt='grid', showindex=range(1, len(data_pengguna)+1)))
+                data_pengguna = data_pengguna.drop(data_pengguna.columns[1], axis=1)  # ini fungsinya ngehapus kolom kedua berdasarkan index
+    
+                if not data_pengguna.empty:
+                    max_colwidth = 25
+                for col in data_pengguna.columns:
+                    data_pengguna[col] = data_pengguna[col].astype(str).apply(lambda x: x if len(x) <= max_colwidth else x[:max_colwidth] + '...')
+                    data_pengguna['Saldo'] = data_pengguna['Saldo'].astype(float).map('Rp. {:,.2f}'.format)
+                    print("\n" + tabulate(data_pengguna, headers='keys', tablefmt='grid', showindex=range(1, len(data_pengguna)+1)))
+                    input("Tekan Enter untuk melanjutkan...")
+                    break
+                else:
+                    input("Tidak ada data pengguna yang ditemukan. Tekan Enter untuk melanjutkan...")
+
             elif opsi_admin == 4:
                 username = input("\nMasukkan Username Pengguna yang akan diisi saldo: ").strip()
                 if cek_username_terdaftar(username):
@@ -470,24 +481,23 @@ def akses_admin():
         os.system('cls')
 
 def awal():
+    os.system('cls')
     while True:
         global opsi
         input(f'''
-    ░██████╗███╗░░░███╗░█████╗░██████╗░████████╗   ███████╗░█████╗░██████╗░███╗░░░███╗
-    ██╔════╝████╗░████║██╔══██╗██╔══██╗╚══██╔══╝   ██╔════╝██╔══██╗██╔══██╗████╗░████║
-    ╚█████╗░██╔████╔██║███████║██████╔╝░░░██║░░░   █████╗░░███████║██████╔╝██╔████╔██║
-    ░╚═══██╗██║╚██╔╝██║██╔══██║██╔══██╗░░░██║░░░   ██╔══╝░░██╔══██║██╔══██╗██║╚██╔╝██║
-    ██████╔╝██║░╚═╝░██║██║░░██║██║░░██║░░░██║░░░   ██║░░░░░██║░░██║██║░░██║██║░╚═╝░██║
-    ╚═════╝░╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝░░╚═╝░░░╚═╝░░░   ╚═╝░░░░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░░░░╚═╝
-        ''')
+░██████╗███╗░░░███╗░█████╗░██████╗░████████╗   ███████╗░█████╗░██████╗░███╗░░░███╗
+██╔════╝████╗░████║██╔══██╗██╔══██╗╚══██╔══╝   ██╔════╝██╔══██╗██╔══██╗████╗░████║
+╚█████╗░██╔████╔██║███████║██████╔╝░░░██║░░░   █████╗░░███████║██████╔╝██╔████╔██║
+░╚═══██╗██║╚██╔╝██║██╔══██║██╔══██╗░░░██║░░░   ██╔══╝░░██╔══██║██╔══██╗██║╚██╔╝██║
+██████╔╝██║░╚═╝░██║██║░░██║██║░░██║░░░██║░░░   ██║░░░░░██║░░██║██║░░██║██║░╚═╝░██║
+╚═════╝░╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝░░╚═╝░░░╚═╝░░░   ╚═╝░░░░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░░░░╚═╝''')
 
         print('\nSelamat datang di Smart Farm!')
-        print('='*50)
+        print('='*80)
         print('1. Log In (Masuk ke akun yang sudah ada.)\n2. Sign Up (Untuk mendaftar akun baru.)\n3. Lupa/Ganti Password\n4. Ganti Username\n5. Keluar')
-        print('='*50)
-        
-        opsi = input('Silahkan pilih menu untuk masuk ke aplikasi (1/2/3/4/5): ')
-        
+        print('='*80)
+
+        opsi = input('Silahkan pilih menu untuk masuk ke aplikasi (1/2/3/4/5): ')        
         if opsi.isdigit() and int(opsi) in [1, 2, 3, 4, 5]:
             opsi = int(opsi)
             os.system('cls')
